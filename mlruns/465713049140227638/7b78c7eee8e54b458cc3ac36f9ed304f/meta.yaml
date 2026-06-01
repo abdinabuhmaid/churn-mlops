@@ -1,0 +1,14 @@
+artifact_uri: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/7b78c7eee8e54b458cc3ac36f9ed304f/artifacts
+end_time: 1779878458148
+entry_point_name: ''
+experiment_id: '465713049140227638'
+lifecycle_stage: active
+run_id: 7b78c7eee8e54b458cc3ac36f9ed304f
+run_name: Random Forest
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779878455752
+status: 3
+tags: []
+user_id: abdinabuhamed

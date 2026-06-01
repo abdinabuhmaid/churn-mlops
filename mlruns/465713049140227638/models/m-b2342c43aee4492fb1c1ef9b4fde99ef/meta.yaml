@@ -1,0 +1,10 @@
+artifact_location: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/models/m-b2342c43aee4492fb1c1ef9b4fde99ef/artifacts
+creation_timestamp: 1780169037333
+experiment_id: '465713049140227638'
+last_updated_timestamp: 1780169039838
+model_id: m-b2342c43aee4492fb1c1ef9b4fde99ef
+model_type: null
+name: best_tuned_model
+source_run_id: 8d94ee60201f44899a2cab1a5d7b5878
+status: 2
+status_message: null

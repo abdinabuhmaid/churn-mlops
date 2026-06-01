@@ -1,0 +1,41 @@
+artifact_path: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/models/m-f02b0deb55764a28b00c384be91d157c/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.12.0
+model_id: m-f02b0deb55764a28b00c384be91d157c
+model_size_bytes: 2054
+model_uuid: m-f02b0deb55764a28b00c384be91d157c
+prompts: null
+run_id: 115ba21513874e7fb389bfdc5f399278
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "long", "name": "tenure", "required": true}, {"type": "double",
+    "name": "MonthlyCharges", "required": true}, {"type": "double", "name": "TotalCharges",
+    "required": true}, {"type": "long", "name": "Contract", "required": true}, {"type":
+    "long", "name": "InternetService", "required": true}, {"type": "long", "name":
+    "PaymentMethod", "required": true}, {"type": "long", "name": "SeniorCitizen",
+    "required": true}, {"type": "long", "name": "PaperlessBilling", "required": true},
+    {"type": "long", "name": "TechSupport", "required": true}, {"type": "long", "name":
+    "OnlineSecurity", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-05-30 19:22:51.069204'

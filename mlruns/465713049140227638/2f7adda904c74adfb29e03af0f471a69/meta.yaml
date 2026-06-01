@@ -1,0 +1,14 @@
+artifact_uri: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/2f7adda904c74adfb29e03af0f471a69/artifacts
+end_time: 1780170308502
+entry_point_name: ''
+experiment_id: '465713049140227638'
+lifecycle_stage: active
+run_id: 2f7adda904c74adfb29e03af0f471a69
+run_name: Hyperopt_Tuning_Session
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780170247998
+status: 3
+tags: []
+user_id: abdinabuhamed

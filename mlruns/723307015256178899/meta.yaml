@@ -1,0 +1,8 @@
+artifact_location: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/723307015256178899
+creation_time: 1779878521705
+experiment_id: '723307015256178899'
+last_update_time: 1779878521705
+lifecycle_stage: active
+name: Churn_Model_Monitoring
+trace_location: null
+workspace: default

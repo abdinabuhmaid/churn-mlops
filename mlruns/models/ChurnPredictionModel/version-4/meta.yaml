@@ -1,0 +1,18 @@
+creation_timestamp: 1780169228863
+current_stage: Archived
+deployment_job_state: null
+description: 'Gradient Boosting model for predicting customer churn. Trained on Telco
+  dataset with Hyperopt tuning. Features: tenure, monthly charges, contract type,
+  etc.'
+last_updated_timestamp: 1780170143076
+model_id: m-0a65b034d3f84046b9f1fa132935032d
+name: ChurnPredictionModel
+run_id: 673a5de063d9410996f6195004823938
+run_link: null
+source: models:/m-0a65b034d3f84046b9f1fa132935032d
+status: READY
+status_message: null
+storage_location: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/models/m-0a65b034d3f84046b9f1fa132935032d/artifacts
+user_id: null
+version: 4
+workspace: default

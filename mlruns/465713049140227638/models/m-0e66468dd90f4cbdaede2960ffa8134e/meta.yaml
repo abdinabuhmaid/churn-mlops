@@ -1,0 +1,10 @@
+artifact_location: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/models/m-0e66468dd90f4cbdaede2960ffa8134e/artifacts
+creation_timestamp: 1780168976198
+experiment_id: '465713049140227638'
+last_updated_timestamp: 1780168978130
+model_id: m-0e66468dd90f4cbdaede2960ffa8134e
+model_type: null
+name: model
+source_run_id: 2a47f6dc656243b4a406e9a4a64897bc
+status: 2
+status_message: null

@@ -1,0 +1,14 @@
+artifact_uri: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/2a47f6dc656243b4a406e9a4a64897bc/artifacts
+end_time: 1780168978243
+entry_point_name: ''
+experiment_id: '465713049140227638'
+lifecycle_stage: active
+run_id: 2a47f6dc656243b4a406e9a4a64897bc
+run_name: Gradient Boosting
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780168975658
+status: 3
+tags: []
+user_id: abdinabuhamed

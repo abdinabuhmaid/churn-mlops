@@ -1,0 +1,14 @@
+artifact_uri: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/7cf95115fad14a64bafa42c3f954acc2/artifacts
+end_time: 1780170266205
+entry_point_name: ''
+experiment_id: '465713049140227638'
+lifecycle_stage: active
+run_id: 7cf95115fad14a64bafa42c3f954acc2
+run_name: Trial_011
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780170264711
+status: 3
+tags: []
+user_id: abdinabuhamed

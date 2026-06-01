@@ -1,0 +1,14 @@
+artifact_uri: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/2fa0d4ac853149b6902ae88cd46e461b/artifacts
+end_time: 1779878455750
+entry_point_name: ''
+experiment_id: '465713049140227638'
+lifecycle_stage: active
+run_id: 2fa0d4ac853149b6902ae88cd46e461b
+run_name: Logistic Regression
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779878453223
+status: 3
+tags: []
+user_id: abdinabuhamed

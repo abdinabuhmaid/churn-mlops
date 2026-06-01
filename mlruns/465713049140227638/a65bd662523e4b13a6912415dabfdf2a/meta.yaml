@@ -1,0 +1,14 @@
+artifact_uri: /Users/abdinabuhamed/Downloads/churn-mlops/mlruns/465713049140227638/a65bd662523e4b13a6912415dabfdf2a/artifacts
+end_time: 1780169196476
+entry_point_name: ''
+experiment_id: '465713049140227638'
+lifecycle_stage: active
+run_id: a65bd662523e4b13a6912415dabfdf2a
+run_name: Tuning_Trial_019
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780169194585
+status: 3
+tags: []
+user_id: abdinabuhamed

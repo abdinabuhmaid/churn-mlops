@@ -6,30 +6,23 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
-    f1_score, roc_auc_score, confusion_matrix
+    f1_score, roc_auc_score, confusion_matrix, roc_curve
 )
 import matplotlib
-matplotlib.use("Agg")  # use a non-interactive backend to plot without requiring a display
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import warnings
 import os
 
 warnings.filterwarnings("ignore")
 
-# All executions in this notebook are under one MLflow experiment
 EXPERIMENT_NAME = "Churn_Prediction"
 
 
 def compute_metrics(model, X_test, y_test):
-    """
-    Runs the model on the test set and returns a dictionary of
-    standard classification metrics.
-
-    AUC-ROC is the primary metric because the dataset is imbalanced
-    (roughly 26% churn vs 74% no-churn), so accuracy alone is misleading.
-    """
+    """Returns a dictionary of classification metrics for the given model."""
     y_pred = model.predict(X_test)
-    y_prob = model.predict_proba(X_test)[:, 1]  # probability of churning
+    y_prob = model.predict_proba(X_test)[:, 1]
 
     return {
         "accuracy":  round(accuracy_score(y_test, y_pred), 4),
@@ -41,10 +34,7 @@ def compute_metrics(model, X_test, y_test):
 
 
 def plot_confusion_matrix(model, X_test, y_test, model_name):
-    """
-    Generates a confusion matrix plot and saves it as a PNG.
-    The file is logged to MLflow as an artifact then removed locally.
-    """
+    """Saves a confusion matrix plot and returns the file path."""
     y_pred = model.predict(X_test)
     cm = confusion_matrix(y_test, y_pred)
 
@@ -57,7 +47,6 @@ def plot_confusion_matrix(model, X_test, y_test, model_name):
     ax.set_xticklabels(["Stay", "Churn"])
     ax.set_yticklabels(["Stay", "Churn"])
 
-    # Label every cell with its corresponding count
     for i in range(2):
         for j in range(2):
             ax.text(j, i, str(cm[i, j]),
@@ -77,12 +66,9 @@ def plot_confusion_matrix(model, X_test, y_test, model_name):
 
 
 def plot_feature_importance(model, feature_names, model_name):
-    """
-    Plots feature importances for tree-based models (Random Forest,
-    Gradient Boosting). Saves and returns the file path.
-    """
+    """Saves a feature importance bar chart and returns the file path."""
     importances = model.feature_importances_
-    indices = np.argsort(importances)[::-1]  # sort descending
+    indices = np.argsort(importances)[::-1]
 
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.bar(range(len(importances)), importances[indices], color="steelblue")
@@ -100,20 +86,56 @@ def plot_feature_importance(model, feature_names, model_name):
     return path
 
 
+def plot_roc_curves(results, y_test, X_test):
+    """
+    Plots ROC curves for all trained models on one chart.
+
+    The ROC curve shows the tradeoff between catching real churners
+    (true positive rate) and falsely flagging loyal customers
+    (false positive rate). A curve that hugs the top-left corner
+    is better — that is what AUC measures.
+
+    We also plot the literature benchmark of AUC 0.845 (Sung, 2025)
+    on the same Telco dataset so the reader can see how our tuned
+    Gradient Boosting compares to published research.
+    """
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    colors = ["#1E2761", "#4A90D9", "#10B981"]
+
+    for i, result in enumerate(results):
+        model   = result["model"]
+        name    = result["name"]
+        auc     = result["metrics"]["roc_auc"]
+        y_prob  = model.predict_proba(X_test)[:, 1]
+        fpr, tpr, _ = roc_curve(y_test, y_prob)
+        ax.plot(fpr, tpr, color=colors[i], linewidth=2,
+                label=f"{name} (AUC = {auc:.4f})")
+
+    # Literature benchmark line — Sung (2025) on same Telco dataset
+    ax.axhline(y=0.845, color="orange", linestyle="--", linewidth=1.5,
+               label="Literature baseline AUC = 0.845 (Sung, 2025)")
+
+    # Random guess diagonal
+    ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="Random guess (AUC = 0.50)")
+
+    ax.set_xlabel("False Positive Rate", fontsize=12)
+    ax.set_ylabel("True Positive Rate", fontsize=12)
+    ax.set_title("ROC Curves — All Models vs Literature Benchmark", fontsize=13)
+    ax.legend(loc="lower right", fontsize=10)
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+
+    path = "roc_curves_comparison.png"
+    plt.savefig(path, dpi=120)
+    plt.close()
+    return path
+
+
 def train_all_models(X_train, X_test, y_train, y_test, feature_names):
     """
-    Trains three classifiers and logs each as a separate MLflow run.
-
-    Models trained:
-        - Logistic Regression  (linear baseline)
-        - Random Forest        (bagging ensemble)
-        - Gradient Boosting    (boosting ensemble, typically best performer)
-
-    Each run logs: parameters, all five metrics, confusion matrix,
-    and feature importances where applicable.
-
-    Returns:
-        best_name, best_run_id, best_model, all_results
+    Trains three classifiers and logs each run to MLflow.
+    Returns the name, run ID, and object of the best-performing model.
     """
 
     print("-" * 50)
@@ -123,7 +145,6 @@ def train_all_models(X_train, X_test, y_train, y_test, feature_names):
     mlflow.set_tracking_uri("./mlruns")
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    # Create the three models with their configurations
     models = [
         {
             "name":   "Logistic Regression",
@@ -155,29 +176,24 @@ def train_all_models(X_train, X_test, y_train, y_test, feature_names):
 
         print(f"Training: {name}")
 
-        # Each model is assigned a unique MLflow run
         with mlflow.start_run(run_name=name):
-
             model.fit(X_train, y_train)
             metrics = compute_metrics(model, X_test, y_test)
 
-            # Document hyperparameters and results of evaluating the model
             mlflow.log_params({**params, "model_type": name})
             mlflow.log_metrics(metrics)
-
-            # Store the trained model as an artifact
             mlflow.sklearn.log_model(
                 sk_model=model,
                 artifact_path="model",
                 input_example=X_train.iloc[:3]
             )
 
-            # Store a plot of the confusion matrix
+            # Log confusion matrix
             cm_path = plot_confusion_matrix(model, X_test, y_test, name)
             mlflow.log_artifact(cm_path)
             os.remove(cm_path)
 
-            # Store feature importance scores (only for tree-based models)
+            # Log feature importances for tree-based models
             if hasattr(model, "feature_importances_"):
                 fi_path = plot_feature_importance(model, feature_names, name)
                 mlflow.log_artifact(fi_path)
@@ -194,14 +210,21 @@ def train_all_models(X_train, X_test, y_train, y_test, feature_names):
             "metrics": metrics, "model": model
         })
 
-    # Display a comparison of all three models side by side
+    # Print comparison table
     print("Model Comparison:")
     comparison = pd.DataFrame([
         {"Model": r["name"], **r["metrics"]} for r in results
     ]).sort_values("roc_auc", ascending=False)
     print(comparison.to_string(index=False))
 
-    # Choose the best model with the highest AUC-ROC score
+    # Plot and log ROC curves for all models in one chart
+    with mlflow.start_run(run_name="ROC_Curve_Comparison"):
+        mlflow.set_tag("run_type", "roc_analysis")
+        roc_path = plot_roc_curves(results, y_test, X_test)
+        mlflow.log_artifact(roc_path)
+        os.remove(roc_path)
+        print("\nROC curve comparison logged to MLflow")
+
     best = max(results, key=lambda x: x["metrics"]["roc_auc"])
     print(f"\nBest model: {best['name']} (AUC-ROC: {best['metrics']['roc_auc']})\n")
 

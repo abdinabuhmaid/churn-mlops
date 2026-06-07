@@ -1,9 +1,9 @@
 creation_timestamp: 1780228657552
-current_stage: Production
+current_stage: Archived
 deployment_job_state: null
 description: Gradient Boosting classifier for customer churn prediction. Trained on
   the Telco dataset using Hyperopt hyperparameter tuning.
-last_updated_timestamp: 1780228657861
+last_updated_timestamp: 1780857651876
 model_id: m-39aee6aa03dc44cd8dcf6cd2705dc812
 name: ChurnPredictionModel
 run_id: ee0dcbd43fe041f6b2fe875309fdd70c

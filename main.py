@@ -2,18 +2,25 @@
 Customer Churn Prediction — MLOps Pipeline
 ==========================================
 AIN-3009 | Bahçeşehir University
-Name : Abdin Abuhmaid — 2267570
+Student : Abdin Abuhmaid — 2267570
 
-The script implements all stages of the complete machine learning process for a 
-customer churn prediction application, utilizing MLflow as an MLOps solution.
+This script orchestrates the full machine learning lifecycle for a
+customer churn prediction system using MLflow as the MLOps platform.
+
+What makes this pipeline special:
+    - Closed-loop auto-retraining when drift is detected
+    - ROC curve comparison against published literature benchmarks
+    - Dynamic drift threshold that adapts to any model's baseline
+    - Full audit trail of every decision logged to MLflow
+    - Runs entirely on a local machine with zero cloud dependency
 
 Pipeline phases:
-    1. Data preparation    — dataset loading, cleaning, encoding, and splitting
-    2. Model training      — training three classifiers with MLflow tracking
-    3. Hyperparameter tuning — hyperparameter tuning through 50 trials Bayesian optimization with Hyperopt
-    4. Model registry      — select the best version and deploy it to Production
-    5. Deployment          — real-time and batch prediction showcase
-    6. Monitoring          — drift detection over six months
+    1. Data preparation    — load, clean, encode, and split the dataset
+    2. Model training      — train three classifiers and track with MLflow
+    3. Hyperparameter tuning — 50-trial Bayesian optimization with Hyperopt
+    4. Model registry      — version and promote the best model to Production
+    5. Deployment          — real-time and batch inference demonstration
+    6. Monitoring          — six-month drift simulation with auto-retraining
 
 Usage:
     python3 main.py
@@ -45,23 +52,23 @@ def main():
     print("  AIN-3009 | Bahçeşehir University | MLflow")
     print("=" * 50 + "\n")
 
-    # Phase 1 — prepare and load the Telco data set
+    # Phase 1 — load and preprocess the Telco dataset
     X_train, X_test, y_train, y_test, feature_names = load_and_prepare_data()
 
-    # Phase 2 — train three models and track all runs using MLflow
+    # Phase 2 — train three classifiers and log all runs to MLflow
     best_name, best_run_id, best_model, all_results = train_all_models(
         X_train, X_test, y_train, y_test, feature_names
     )
 
-    # Phase 3 — optimize Hyperopt for Gradient Boosting best parameters
+    # Phase 3 — run Hyperopt to find the best Gradient Boosting parameters
     tuned_model, best_params, tuning_run_id = tune_model(
         X_train, X_test, y_train, y_test, max_evals=50
     )
 
-    # Phase 4 — register the model and move to Production stage
+    # Phase 4 — register the tuned model and promote it to Production
     model_name, version = register_model(run_id=tuning_run_id)
 
-    # Phase 5 — perform inference both in real time and batch inference
+    # Phase 5 — demonstrate real-time and batch inference
     batch_preds, batch_probs = deploy_and_predict(
         model=tuned_model,
         X_test=X_test,
@@ -69,17 +76,23 @@ def main():
         feature_names=feature_names
     )
 
-    # Phase 6 — test performance for six months after deployment
+    # Phase 6 — monitor performance and auto-retrain when drift detected
+    # We pass X_train, y_train, and best_params so the system can
+    # retrain automatically without any human intervention
     monitoring_results = simulate_monitoring(
         model=tuned_model,
         X_test=X_test,
         y_test=y_test,
-        n_periods=6
+        n_periods=6,
+        X_train=X_train,
+        y_train=y_train,
+        best_params=best_params
     )
 
-    # summarize results for the final report
+    # Final summary
     elapsed     = time.time() - start_time
     drift_count = sum(1 for r in monitoring_results if r["drift"])
+    retrain_count = sum(1 for r in monitoring_results if r["retrained"])
     base_auc    = max(r["metrics"]["roc_auc"] for r in all_results)
 
     print("=" * 50)
@@ -97,6 +110,7 @@ def main():
   Registry        : {model_name} v{version} — Production
   Deployment      : {int(batch_preds.sum())} predicted churners / {len(batch_preds)} customers scored
   Monitoring      : {drift_count} drift alert(s) over {len(monitoring_results)} months
+  Auto-retraining : {retrain_count} automatic retrain(s) triggered
 
   Total runtime   : {elapsed:.1f}s
   MLflow UI       : python3 -m mlflow ui  →  http://127.0.0.1:5000

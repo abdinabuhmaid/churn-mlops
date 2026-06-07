@@ -20,7 +20,9 @@ In this project, a full-stack pipeline for predicting customer churns in telecom
 | Hyperparameter Tuning | 50-trial Bayesian search using Hyperopt                           |
 | Model Registry | Versioned model promotion from Staging to Production              |
 | Deployment | Real-time and batch inference using registered model              |
-| Performance Monitoring | Six-month drift simulation with automated alerting                |
+| Performance Monitoring | Six-month drift simulation with automated alerting |
+| Auto-Retraining | Self-healing system — retrains and redeploys when drift detected |
+
 
 ---
 
@@ -81,6 +83,7 @@ The pipeline executes six phases in sequence:
 4. Model registry: moves the fine-tuned classifier to the Production stage
 5. Deployment: scores samples and batches of customers
 6. Monitoring: conducts six months of performance monitoring
+7. Auto-Retraining — automatically retrains and redeploys when drift is detected
 
 Total execution time is about 60-70 seconds.
 
@@ -116,7 +119,9 @@ python3 -m mlflow ui
 - Evaluation metric: AUC-ROC (chosen for class imbalance)
 - Post-tuning AUC: ~0.848
 - Production version: ChurnPredictionModel v6
-- Drift detected from month 4 onward — retraining recommended
+- Drift detected from month 4 onward — system auto-retrained 3 times
+- Self-healing pipeline — no human intervention required
+- ROC curve comparison logged against published literature benchmark (AUC 0.845)
 
 ---
 

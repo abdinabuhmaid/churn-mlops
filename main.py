@@ -4,28 +4,28 @@ Customer Churn Prediction — MLOps Pipeline
 AIN-3009 | Bahçeşehir University
 Student : Abdin Abuhmaid — 2267570
 
-This script orchestrates the full machine learning lifecycle for a
-customer churn prediction system using MLflow as the MLOps platform.
+This script implements all stages of the machine learning process in a
+churn predictor ML system with MLflow serving as the MLOps solution.
 
-What makes this pipeline special:
-    - Closed-loop auto-retraining when drift is detected
-    - ROC curve comparison against published literature benchmarks
-    - Dynamic drift threshold that adapts to any model's baseline
-    - Full audit trail of every decision logged to MLflow
-    - Runs entirely on a local machine with zero cloud dependency
+What distinguishes this pipeline from others:
+    - Self-training loop based on drift detection algorithm
+    - Comparing ROC curves with results from existing literature
+    - Adaptable drift threshold that is specific to the chosen model
+    - All decisions are tracked and audited with MLflow logging
+    - Operates locally without relying on any cloud computing resources
 
-Pipeline phases:
-    1. Data preparation    — load, clean, encode, and split the dataset
-    2. Model training      — train three classifiers and track with MLflow
-    3. Hyperparameter tuning — 50-trial Bayesian optimization with Hyperopt
-    4. Model registry      — version and promote the best model to Production
-    5. Deployment          — real-time and batch inference demonstration
-    6. Monitoring          — six-month drift simulation with auto-retraining
+Pipeline steps:
+    1. Data preparation    — Load, clean, encode, and split the dataset
+    2. Model training      — Train three classifiers using MLflow tracking
+    3. Hyperparameter tuning — Bayesian optimization with Hyperopt for 50 trials
+    4. Model registry      — promote the best-performing model to the Production stage
+    5. Deployment          — Real-time and batch inference illustration
+    6. Monitoring          — Six months of drift simulation with automated re-training
 
 Usage:
     python3 main.py
 
-MLflow dashboard:
+Dashboard for the MLflow:
     python3 -m mlflow ui
     http://127.0.0.1:5000
 """
@@ -52,23 +52,23 @@ def main():
     print("  AIN-3009 | Bahçeşehir University | MLflow")
     print("=" * 50 + "\n")
 
-    # Phase 1 — load and preprocess the Telco dataset
+    # Phase 1 — load and pre-process the Telco data set
     X_train, X_test, y_train, y_test, feature_names = load_and_prepare_data()
 
-    # Phase 2 — train three classifiers and log all runs to MLflow
+    # Phase 2 — build three classifiers and record all trials using MLflow
     best_name, best_run_id, best_model, all_results = train_all_models(
         X_train, X_test, y_train, y_test, feature_names
     )
 
-    # Phase 3 — run Hyperopt to find the best Gradient Boosting parameters
+    # Phase 3 — execute Hyperopt for optimizing Gradient Boosting parameters
     tuned_model, best_params, tuning_run_id = tune_model(
         X_train, X_test, y_train, y_test, max_evals=50
     )
 
-    # Phase 4 — register the tuned model and promote it to Production
+    # Phase 4 — deploy and promote the best performing model in Production
     model_name, version = register_model(run_id=tuning_run_id)
 
-    # Phase 5 — demonstrate real-time and batch inference
+    # Phase 5 — demonstrate live and batch predictions
     batch_preds, batch_probs = deploy_and_predict(
         model=tuned_model,
         X_test=X_test,
@@ -76,9 +76,9 @@ def main():
         feature_names=feature_names
     )
 
-    # Phase 6 — monitor performance and auto-retrain when drift detected
-    # We pass X_train, y_train, and best_params so the system can
-    # retrain automatically without any human intervention
+    # Phase 6 — monitor and re-train automatically upon detecting drift
+    # We pass on X_train, y_train, and best_params to allow for
+    # re-training automatically without requiring any manual effort
     monitoring_results = simulate_monitoring(
         model=tuned_model,
         X_test=X_test,
@@ -89,7 +89,7 @@ def main():
         best_params=best_params
     )
 
-    # Final summary
+    # Summary
     elapsed     = time.time() - start_time
     drift_count = sum(1 for r in monitoring_results if r["drift"])
     retrain_count = sum(1 for r in monitoring_results if r["retrained"])

@@ -112,11 +112,11 @@ def plot_roc_curves(results, y_test, X_test):
         ax.plot(fpr, tpr, color=colors[i], linewidth=2,
                 label=f"{name} (AUC = {auc:.4f})")
 
-    # Literature benchmark line — Sung (2025) on same Telco dataset
+    # Benchmarking literature line - Sung (2025) based on same Telco data set
     ax.axhline(y=0.845, color="orange", linestyle="--", linewidth=1.5,
                label="Literature baseline AUC = 0.845 (Sung, 2025)")
 
-    # Random guess diagonal
+    # Diagonal for random guesses
     ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="Random guess (AUC = 0.50)")
 
     ax.set_xlabel("False Positive Rate", fontsize=12)
@@ -188,12 +188,12 @@ def train_all_models(X_train, X_test, y_train, y_test, feature_names):
                 input_example=X_train.iloc[:3]
             )
 
-            # Log confusion matrix
+            # Log the Confusion matrix
             cm_path = plot_confusion_matrix(model, X_test, y_test, name)
             mlflow.log_artifact(cm_path)
             os.remove(cm_path)
 
-            # Log feature importances for tree-based models
+            # Log the feature importances for tree-based models
             if hasattr(model, "feature_importances_"):
                 fi_path = plot_feature_importance(model, feature_names, name)
                 mlflow.log_artifact(fi_path)
@@ -210,14 +210,14 @@ def train_all_models(X_train, X_test, y_train, y_test, feature_names):
             "metrics": metrics, "model": model
         })
 
-    # Print comparison table
+    # Print the comparison table
     print("Model Comparison:")
     comparison = pd.DataFrame([
         {"Model": r["name"], **r["metrics"]} for r in results
     ]).sort_values("roc_auc", ascending=False)
     print(comparison.to_string(index=False))
 
-    # Plot and log ROC curves for all models in one chart
+    # Graph and log ROC curve for all classifiers in one plot
     with mlflow.start_run(run_name="ROC_Curve_Comparison"):
         mlflow.set_tag("run_type", "roc_analysis")
         roc_path = plot_roc_curves(results, y_test, X_test)

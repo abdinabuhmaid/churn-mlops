@@ -52,7 +52,7 @@ def auto_retrain(X_train, y_train, X_test, y_test, best_params, month):
         mlflow.set_tag("trigger",        f"drift_month_{month}")
         mlflow.set_tag("retrain_reason", "AUC dropped below threshold")
 
-        # Retrain with the best parameters from the tuning phase
+        # Re-train using the best set of parameters discovered during tuning
         new_model = GradientBoostingClassifier(**best_params)
         new_model.fit(X_train, y_train)
 
@@ -67,7 +67,7 @@ def auto_retrain(X_train, y_train, X_test, y_test, best_params, month):
             "retrain_accuracy": round(new_acc, 4),
         })
 
-        # Save the retrained model as an artifact
+        # Save the re-trained model as a model artifact
         mlflow.sklearn.log_model(
             sk_model=new_model,
             artifact_path="retrained_model",
@@ -76,12 +76,12 @@ def auto_retrain(X_train, y_train, X_test, y_test, best_params, month):
 
         retrain_run_id = mlflow.active_run().info.run_id
 
-    # Register the retrained model in the MLflow Model Registry
+    # Register the re-trained model in the MLflow Model Registry
     model_uri = f"runs:/{retrain_run_id}/retrained_model"
     registered = mlflow.register_model(model_uri=model_uri, name=MODEL_NAME)
     new_version = registered.version
 
-    # Add tags so it is easy to identify this as an auto-retrained version
+    # Add some labels so that it can be identified as a model retrained automatically.
     client.update_model_version(
         name=MODEL_NAME,
         version=new_version,
@@ -93,7 +93,7 @@ def auto_retrain(X_train, y_train, X_test, y_test, best_params, month):
     client.set_model_version_tag(MODEL_NAME, new_version, "retrain_trigger", f"month_{month}")
     client.set_model_version_tag(MODEL_NAME, new_version, "auto_retrained",  "True")
 
-    # Promote to Production automatically
+    # Promote the model to production automatically.
     client.transition_model_version_stage(
         name=MODEL_NAME,
         version=new_version,
@@ -146,7 +146,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
     mlflow.set_tracking_uri("./mlruns")
     mlflow.set_experiment(MONITORING_EXPERIMENT)
 
-    # Establish the performance baseline at the time of deployment
+    # Capture the performance baseline of the deployed model
     baseline_auc    = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
     baseline_acc    = accuracy_score(y_test, model.predict(X_test))
     baseline_f1     = f1_score(y_test, model.predict(X_test), zero_division=0)
@@ -156,7 +156,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
     print(f"Drift alert threshold      : {drift_threshold} (5% below baseline)\n")
 
     results      = []
-    active_model = model  # track which model is currently active
+    active_model = model  # Keep track of the currently used model
 
     with mlflow.start_run(run_name="Monitoring_6_Months"):
         mlflow.set_tag("run_type", "monitoring")
@@ -170,20 +170,20 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
 
         for month in range(1, n_periods + 1):
 
-            # Simulate feature drift — noise increases with each month
+            # Feature Drift — Add random noise to features as months pass
             X_shifted   = X_test.copy()
             noise_scale = 0.05 * month
             for col in ["tenure", "MonthlyCharges", "TotalCharges"]:
                 noise = np.random.normal(0, noise_scale, len(X_shifted))
                 X_shifted[col] = (X_shifted[col] * (1 + noise)).clip(lower=0)
 
-            # Simulate concept drift — more label flips each month
+            # Concept Drift — Add flipped labels to training data as months pass
             y_shifted = y_test.values.copy()
             flip_mask = np.random.rand(len(y_shifted)) < (0.01 * month)
             y_shifted[flip_mask] = 1 - y_shifted[flip_mask]
             y_shifted = pd.Series(y_shifted)
 
-            # Score the currently active model
+            # Test the currently deployed model
             y_pred    = active_model.predict(X_shifted)
             y_prob    = active_model.predict_proba(X_shifted)[:, 1]
 
@@ -203,7 +203,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
             print(f"  Month {month}: AUC={month_auc:.4f} | "
                   f"Acc={month_acc:.4f} | F1={month_f1:.4f} | {status}")
 
-            # AUTO-RETRAINING — triggered when drift is detected
+            # AUTO-RETRAINING — Occurs whenever drift is detected
             retrained_version = None
             if drifted and X_train is not None and best_params is not None:
                 mlflow.set_tag(f"drift_month_{month}", "ALERT")
@@ -221,7 +221,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
                 "retrained": retrained_version
             })
 
-        # Build monitoring dashboard chart
+        # Create monitoring dashboard graph
         months     = [r["month"] for r in results]
         aucs       = [r["auc"]   for r in results]
         accs       = [r["acc"]   for r in results]
@@ -231,7 +231,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 
-        # Top panel — AUC over time
+        # Upper part — AUC curve
         ax1.plot(all_months, all_aucs, "b-o", linewidth=2, label="AUC-ROC")
         ax1.axhline(drift_threshold, color="red", linestyle="--",
                     linewidth=1.5, label=f"Alert threshold ({drift_threshold})")
@@ -242,7 +242,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
                          where=[v < drift_threshold for v in all_aucs],
                          alpha=0.15, color="red", label="Drift zone")
 
-        # Mark auto-retrain events on the chart
+        # Annotate auto-retrain events on the graph
         for r in results:
             if r["retrained"]:
                 ax1.axvline(x=r["month"], color="purple", linestyle=":",
@@ -259,7 +259,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
         ax1.legend(fontsize=9)
         ax1.grid(True, alpha=0.3)
 
-        # Bottom panel — all metrics
+        # Lower part — All other performance metrics
         ax2.plot(all_months, all_aucs,                  "b-o", label="AUC-ROC")
         ax2.plot(all_months, [baseline_acc] + accs,     "g-s", label="Accuracy")
         ax2.plot(all_months, [baseline_f1]  + f1s,      "m-^", label="F1 Score")
@@ -281,7 +281,7 @@ def simulate_monitoring(model, X_test, y_test, n_periods=6,
 
         monitoring_run_id = mlflow.active_run().info.run_id
 
-    # Print summary
+    # Display Summary
     drift_months    = [r["month"] for r in results if r["drift"]]
     retrain_months  = [r["month"] for r in results if r["retrained"]]
 
